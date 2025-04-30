@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    <flow name="p-layer-rjaencobos-main">
+        <http:listener config-ref="p-layer-rjaencobos-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="p-layer-rjaencobos-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="p-layer-rjaencobos-console">
+        <http:listener config-ref="p-layer-rjaencobos-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="p-layer-rjaencobos-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="get:\accounts:p-layer-rjaencobos-config" doc:id="0fff3e49-18fd-445d-97b3-48d7df1895c5">
+        <http:request method="GET" doc:name="Request" doc:id="e75cfbe2-aeb5-46dd-85d4-b30d59ed949c" config-ref="HTTP_Request_configuration" path="${system.path}">
+			<http:headers ><![CDATA[#[{
+	"client_id": Mule::p("secure::sys.auth.client_id"),
+	"client_secret": Mule::p("secure::sys.auth.client_secret")
+}]]]></http:headers>
+		</http:request>
+		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="3fa88a92-2047-4240-b19d-dde74a30c55b" variableName="accounts"/>
+    </flow>
+    <flow name="get:\combine:p-layer-rjaencobos-config">
+        <http:listener doc:name="Listener" doc:id="041f9669-6ff6-41b5-8095-a24d02dd18e5" config-ref="p-layer-rjaencobos-httpListenerConfig" path="/combine" />
+		<flow-ref doc:name="Flow Reference" doc:id="a90af400-1483-4ecd-80e9-45e07629a9c2" name="get:\contacts:p-layer-rjaencobos-config"/>
+		<flow-ref doc:name="Flow Reference" doc:id="8c493ee0-26e1-4a48-b744-03c1867d033a" name="get:\accounts:p-layer-rjaencobos-config"/>
+		<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+var accounts = vars.accounts
+var contacts = vars.contacts
+---
+accounts map ((account) -> {
+    accountId: account.Id,
+    accountName: account.Name,
+    industry: account.Industry,
+    description: account.Description,
+    billingStreet: account.BillingStreet,
+    accountNumber: account.AccountNumber,
+    contacts: contacts filter ((contact) -> contact.AccountId == account.Id) map ((contact) -> {
+        contactId: contact.Id,
+        contactName: contact.Name,
+        lastName: contact.LastName,
+        firstName: contact.FirstName,
+        salutation: contact.Salutation,
+        mailingStreet: contact.MailingStreet
+    })
+})
+]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\contacts:p-layer-rjaencobos-config" doc:id="1d9a7503-e906-4a60-bdb6-64d96fc03851">
+        <http:request method="GET" doc:name="Request" doc:id="7412bbb2-8b59-45b8-b982-2857e3806c42" config-ref="HTTP_Request_configuration" path="${system.path2}">
+			<http:headers ><![CDATA[#[{
+	"client_id": Mule::p("secure::sys.auth.client_id"),
+	"client_secret": Mule::p("secure::sys.auth.client_secret")
+}]]]></http:headers>
+		</http:request>
+		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="5d277eda-e2dd-4264-9496-230f42b8bcba" variableName="contacts"/>
+    </flow>
+</mule>
