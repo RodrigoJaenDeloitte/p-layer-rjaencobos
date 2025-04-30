@@ -37,6 +37,7 @@ jobs:
           </settings>
           EOF
 
+          
         
       - name: Print Mule runtime version
         run: mvn help:evaluate -Dexpression=mule.runtime.version -q -DforceStdout
