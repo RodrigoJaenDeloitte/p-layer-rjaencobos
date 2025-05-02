@@ -1,24 +1,24 @@
 name: CI - Deploy to CloudHub
-
+ 
 on:
   push:
     branches:
       - main
-
+ 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+ 
     steps:
       - name: Checkout project
         uses: actions/checkout@v3
-
+ 
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
-
+ 
       - name: Set up Maven settings.xml
         run: |
           mkdir -p ~/.m2
@@ -30,17 +30,12 @@ jobs:
             <servers>
               <server>
                 <id>anypoint-exchange-v3</id>
-                <username>${{ secrets.ANYPOINT_USERNAME }}</username>
-                <password>${{ secrets.ANYPOINT_PASSWORD }}</password>
+                <username>~~~Client~~~</username>
+                <password>64bb47a8a101421ea46e35dc9099d5bc~?~195Eb9d7921F4605B7D9C34AA8B8f020</password>
               </server>
             </servers>
           </settings>
           EOF
-
-          
-        
-      - name: Print Mule runtime version
-        run: mvn help:evaluate -Dexpression=mule.runtime.version -q -DforceStdout
-
+ 
       - name: Deploy to CloudHub
-        run: mvn clean deploy -X -DmuleDeploy -Danypoint.username=${{ secrets.ANYPOINT_USERNAME }} -Danypoint.password=${{ secrets.ANYPOINT_PASSWORD }} -Danypoint.environment=Sandbox 
+        run: mvn clean deploy -DmuleDeploy -Danypoint.environment=Sandbox
